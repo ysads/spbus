@@ -4,6 +4,7 @@
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[clojure.java-time "0.3.2"]
+                 [com.novemberain/monger "3.1.0"]
                  [com.stuartsierra/component "0.4.0"]
                  [dk.ative/docjure "1.12.0"]
                  [org.clojure/clojure "1.10.0"]
