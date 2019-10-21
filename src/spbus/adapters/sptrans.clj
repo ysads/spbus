@@ -1,8 +1,13 @@
 (ns spbus.adapters.sptrans
-  (:require [java-time :as time]
+  (:require [clojure.java.io :as io]
+            [dk.ative.docjure.spreadsheet :as sheet]
+            [java-time :as time]
             [reaver :as r])
   (:gen-class))
 
+;;;;;;;;;;;;;;;;;;;;
+;; Crawling related stuff
+;;
 (def statistics-url "https://www.prefeitura.sp.gov.br/cidade/secretarias/transportes/institucional/sptrans/acesso_a_informacao/agenda/index.php?p=269652")
 
 (def months-mapping {"Janeiro" "01"
@@ -82,3 +87,32 @@
          (map daily-links)
          (flatten)
          (sort-by #(time/as (:date %) :day-of-year)))))
+
+;;;;;;;;;;;;;;;;;;
+;; Parsing related stuff
+;;
+(defn load-sheet
+  "Downloads spreadsheet from a particular link and load its first
+  working sheet into memory."
+  [link]
+  (with-open [stream (io/input-stream (:url link))]
+    (-> (sheet/load-workbook stream)
+        (sheet/sheet-seq)
+        (first))))
+
+(defn all-statistics
+  "Drops the worksheet header leaving just the raw data."
+  [worksheet]
+  (->> (sheet/row-seq worksheet)
+       (drop 3)
+       (seq)))
+
+(defn row->line-statistics
+  [row]
+  nil)
+
+(defn statistics-of-day
+  [link]
+  (let [worksheet (load-sheet link)
+        data (all-statistics worksheet)]
+    (map #(row->line-statistics % worksheet) data)))
