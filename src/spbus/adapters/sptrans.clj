@@ -1,0 +1,79 @@
+(ns spbus.adapters.sptrans
+  (:require [java-time :as time]
+            [reaver :as r])
+  (:gen-class))
+
+(def statistics-url "https://www.prefeitura.sp.gov.br/cidade/secretarias/transportes/institucional/sptrans/acesso_a_informacao/agenda/index.php?p=269652")
+
+(def months-mapping {"Janeiro" "01"
+                     "Fevereiro" "02"
+                     "Março" "03"
+                     "Abril" "04"
+                     "Maio" "05"
+                     "Junho" "06"
+                     "Julho" "07"
+                     "Agosto" "08"
+                     "Setembro" "09"
+                     "Outubro" "10"
+                     "Novembro" "11"
+                     "Dezembro" "12"})
+
+(defn month
+  "Simply convert a long and descritive month to its numeric representation"
+  [month-str]
+  (get months-mapping month-str))
+
+(defn ^:private stats-on-container
+  [page container]
+  (r/extract-from (r/parse page)
+                  container
+                  [:month :raw-links]
+                  "caption" r/text
+                  "a"       r/edn))
+
+(defn month-total?
+  "Is true when the given raw link represents statistics consolidated
+  for a whole month, instead of a single day."
+  [raw-link]
+  (= "Total"
+     (first (:content raw-link))))
+
+(defn ^:private formatted-date
+  [day-str month-str]
+  (str "2019-" (month month-str) "-" day-str))
+
+(defn link-date
+  "Returns the date to which a link refer in a proper format"
+  [raw-link month-str]
+  (if-not (month-total? raw-link)
+    (let [day-str (first (:content raw-link))
+          date-str (formatted-date day-str month-str)]
+      (time/local-date "yyyy-MM-dd" date-str))
+    nil))
+
+(defn link-url
+  "Returns the URL in which the stats are available"
+  [raw-link]
+  (:href (:attrs raw-link)))
+
+(defn ^:private new-link
+  [raw-link month]
+  (when-not (month-total? raw-link)
+    {:date (link-date raw-link month)
+     :url  (link-url raw-link)}))
+
+(defn daily-links
+  [raw-month]
+  (let [month (:month raw-month)
+        links (or (:raw-links raw-month) [])]
+    (->> links
+         (map #(new-link % month))
+         (remove nil?))))
+
+(defn year-links []
+  (let [page (slurp statistics-url)]
+    (->> (into (stats-on-container page ".calend_dir")
+               (stats-on-container page ".calend_esq"))
+         (map daily-links)
+         (flatten)
+         (sort-by #(time/as (:date %) :day-of-year)))))
