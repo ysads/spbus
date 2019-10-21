@@ -19,7 +19,7 @@
                      "Dezembro" "12"})
 
 (defn month
-  "Simply convert a long and descritive month to its numeric representation"
+  "Simply convert a long and descritive month to its numeric representation."
   [month-str]
   (get months-mapping month-str))
 
@@ -43,7 +43,7 @@
   (str "2019-" (month month-str) "-" day-str))
 
 (defn link-date
-  "Returns the date to which a link refer in a proper format"
+  "Returns the date to which a link refer in a proper format."
   [raw-link month-str]
   (if-not (month-total? raw-link)
     (let [day-str (first (:content raw-link))
@@ -52,17 +52,21 @@
     nil))
 
 (defn link-url
-  "Returns the URL in which the stats are available"
+  "Returns the URL in which the stats are available."
   [raw-link]
   (:href (:attrs raw-link)))
 
 (defn ^:private new-link
+  "Represents a link to a particular day's stats. Note we won't
+  allow consolidated results to be parsed, since they are not tied
+  to any particular day."
   [raw-link month]
   (when-not (month-total? raw-link)
     {:date (link-date raw-link month)
      :url  (link-url raw-link)}))
 
 (defn daily-links
+  "All available links for statistics of a particular month."
   [raw-month]
   (let [month (:month raw-month)
         links (or (:raw-links raw-month) [])]
@@ -71,6 +75,7 @@
          (remove nil?))))
 
 (defn year-links []
+  "All available links for statistics of a year."
   (let [page (slurp statistics-url)]
     (->> (into (stats-on-container page ".calend_dir")
                (stats-on-container page ".calend_esq"))
