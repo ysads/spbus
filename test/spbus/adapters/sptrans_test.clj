@@ -60,7 +60,10 @@
   [link]
   (time/as (:date link) :day-of-year))
 
+(def mock-page (tools/mock-from-fixture "sptrans/statistics_page.html"))
+
 (fact "sptrans/year-links"
-  (let [stats-links (sptrans/year-links)]
+  (against-background [(slurp ..url..) => mock-page])
+  (let [stats-links (sptrans/year-links ..url..)]
     (count stats-links) => 273
     (apply <= (map day-of-year stats-links)) => true))

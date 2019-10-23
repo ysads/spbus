@@ -36,12 +36,21 @@
                   "caption" r/text
                   "a"       r/edn))
 
+; (defn month-total?
+;   "Is true when the given raw link represents statistics consolidated
+;   for a whole month, instead of a single day."
+;   [raw-link]
+;   (= "Total"
+;      (first (:content raw-link))))
+
+
 (defn month-total?
   "Is true when the given raw link represents statistics consolidated
   for a whole month, instead of a single day."
   [raw-link]
-  (= "Total"
-     (first (:content raw-link))))
+  (let [day-str (first (:content raw-link))
+        sanitized-day (str/replace day-str #"\u00a0" "")]
+    (str/includes? "Total" sanitized-day)))
 
 (defn ^:private formatted-date
   [day-str month-str]
@@ -79,9 +88,10 @@
          (map #(new-link % month))
          (remove nil?))))
 
-(defn year-links []
+(defn year-links
+  [url]
   "All available links for statistics of a year."
-  (let [page (slurp statistics-url)]
+  (let [page (slurp url)]
     (->> (into (stats-on-container page ".calend_dir")
                (stats-on-container page ".calend_esq"))
          (map daily-links)
