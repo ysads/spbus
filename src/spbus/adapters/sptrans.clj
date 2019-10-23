@@ -1,6 +1,6 @@
 (ns spbus.adapters.sptrans
   (:require [clojure.java.io :as io]
-            [dk.ative.docjure.spreadsheet :as sheet]
+            [clojure.string :as str]
             [java-time :as time]
             [reaver :as r])
   (:gen-class))
@@ -101,28 +101,20 @@
 ;;;;;;;;;;;;;;;;;;
 ;; Parsing related stuff
 ;;
-(defn load-sheet
-  "Downloads spreadsheet from a particular link and load its first
-  working sheet into memory."
-  [link]
-  (with-open [stream (io/input-stream (:url link))]
-    (-> (sheet/load-workbook stream)
-        (sheet/sheet-seq)
-        (first))))
 
-(defn all-statistics
-  "Drops the worksheet header leaving just the raw data."
-  [worksheet]
-  (->> (sheet/row-seq worksheet)
-       (drop 3)
-       (seq)))
+; (defn all-statistics
+;   "Drops the worksheet header leaving just the raw data."
+;   [worksheet]
+;   (->> (sheet/row-seq worksheet)
+;        (drop 3)
+;        (seq)))
 
-(defn row->line-statistics
-  [row]
-  nil)
+; (defn row->line-statistics
+;   [row]
+;   nil)
 
-(defn statistics-of-day
-  [link]
-  (let [worksheet (load-sheet link)
-        data (all-statistics worksheet)]
-    (map #(row->line-statistics % worksheet) data)))
+; (defn statistics-of-day
+;   [link]
+;   (let [worksheet (load-sheet link)
+;         data (all-statistics worksheet)]
+;     (map #(row->line-statistics % worksheet) data)))
