@@ -27,3 +27,6 @@
 
 (fact "parser-a/main-terminus parses main terminus"
   (parser-a/main-terminus row-type-a) => "METRO BARRA FUNDA")
+
+(fact "parser-a/auxiliar-terminus parses main terminus"
+  (parser-a/auxiliar-terminus row-type-a) => "MORRO GRANDE")
