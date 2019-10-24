@@ -2,7 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [java-time :as time]
-            [reaver :as r])
+            [reaver :as r]
+            [spbus.adapters.sptrans.parser-a :as parser-a]
+            [spbus.adapters.spreadsheet :as spreadsheet])
   (:gen-class))
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -35,14 +37,6 @@
                   [:month :raw-links]
                   "caption" r/text
                   "a"       r/edn))
-
-; (defn month-total?
-;   "Is true when the given raw link represents statistics consolidated
-;   for a whole month, instead of a single day."
-;   [raw-link]
-;   (= "Total"
-;      (first (:content raw-link))))
-
 
 (defn month-total?
   "Is true when the given raw link represents statistics consolidated
@@ -102,19 +96,22 @@
 ;; Parsing related stuff
 ;;
 
-; (defn all-statistics
-;   "Drops the worksheet header leaving just the raw data."
-;   [worksheet]
-;   (->> (sheet/row-seq worksheet)
-;        (drop 3)
-;        (seq)))
+(defn all-statistics
+  "Drops the worksheet header leaving just the raw data."
+  [worksheet]
+  (->> (spreadsheet/rows worksheet)
+       (drop 3)
+       (seq)))
 
-; (defn row->line-statistics
-;   [row]
-;   nil)
+(defn row->line-statistics
+  [raw-row]
+  (let [row (seq raw-row)]
+    (cond
+      (parser-a/parseable? row) (parser-a/parse row)
+      :else nil)))
 
-; (defn statistics-of-day
-;   [link]
-;   (let [worksheet (load-sheet link)
-;         data (all-statistics worksheet)]
-;     (map #(row->line-statistics % worksheet) data)))
+(defn statistics-of-day
+  [link]
+  (let [worksheet (spreadsheet/load-sheet (:url link))
+        data (all-statistics worksheet)]
+    (map row->line-statistics data)))

@@ -4,10 +4,6 @@
             [spbus.adapters.spreadsheet :as spreadsheet])
   (:gen-class))
 
-(defn parseable?
-  [row]
-  (= 16 (count row)))
-
 (defn ^:private line-code
   "Returns the line main code. Examples:
    - 803210 => 8032
@@ -46,12 +42,12 @@
 (defn main-terminus
   [row]
   (let [terminus (line-terminus row)]
-		  (first (str/split terminus #"/"))))
+    (first (str/split terminus #"/"))))
 
 (defn auxiliar-terminus
   [row]
-		(let [terminus (line-terminus row)]
-				  (last (str/split terminus #"/"))))
+  (let [terminus (line-terminus row)]
+      (last (str/split terminus #"/"))))
 
 (defn paying-cash-pax
   [row]
@@ -93,13 +89,17 @@
   [row]
   (int (spreadsheet/cell-value row 14)))
 
+(defn total-pax
+  [row]
+  (int (spreadsheet/cell-value row 15)))
+
 (defn free-pax
   [row]
   (- (total-pax row) (paying-pax row)))
 
-(defn total-pax
+(defn parseable?
   [row]
-  (int (spreadsheet/cell-value row 15)))
+  (= 16 (count row)))
 
 (defn parse
   "Returns a map containing all the line information"
@@ -121,5 +121,4 @@
                 :normal (free-normal-pax row)
                 :student (free-student-pax row)
                 :total (free-pax row)}
-     :total-pax (total-pax row)})
-)
+     :total-pax (total-pax row)}))
