@@ -8,7 +8,6 @@
   [row]
   (= 16 (count row)))
 
-
 (defn ^:private line-code
   "Returns the line main code. Examples:
    - 803210 => 8032
@@ -53,3 +52,74 @@
   [row]
 		(let [terminus (line-terminus row)]
 				  (last (str/split terminus #"/"))))
+
+(defn paying-cash-pax
+  [row]
+  (int (spreadsheet/cell-value row 5)))
+
+(defn paying-normal-work-card-pax
+  [row]
+  (int (spreadsheet/cell-value row 6)))
+
+(defn paying-student-pax
+  [row]
+  (int (spreadsheet/cell-value row 8)))
+
+(defn paying-month-pass-normal-pax
+  [row]
+  (int (spreadsheet/cell-value row 7)))
+
+(defn paying-month-pass-student-pax
+  [row]
+  (int (spreadsheet/cell-value row 9)))
+
+(defn paying-month-pass-work-pax
+  [row]
+  (int (spreadsheet/cell-value row 10)))
+
+(defn paying-pax
+  [row]
+  (int (spreadsheet/cell-value row 11)))
+
+(defn free-bus-bus-conn-pax
+  [row]
+  (int (spreadsheet/cell-value row 12)))
+
+(defn free-normal-pax
+  [row]
+  (int (spreadsheet/cell-value row 13)))
+
+(defn free-student-pax
+  [row]
+  (int (spreadsheet/cell-value row 14)))
+
+(defn free-pax
+  [row]
+  (- (total-pax row) (paying-pax row)))
+
+(defn total-pax
+  [row]
+  (int (spreadsheet/cell-value row 15)))
+
+(defn parse
+  "Returns a map containing all the line information"
+  [row]
+  (let [id (line-id row)]
+    {:line-id id
+     :line-code (line-code id)
+     :branch-code (branch-code id)
+     :main-terminus (main-terminus row)
+     :auxiliar-terminus (auxiliar-terminus row)
+     :paying-pax {:cash (paying-cash-pax row)
+                  :normal-and-work-card (paying-normal-work-card-pax row)
+                  :student (paying-student-pax row)
+                  :month-pass-normal (paying-month-pass-normal-pax row)
+                  :month-pass-work (paying-month-pass-work-pax row)
+                  :month-pass-student (paying-month-pass-student-pax row)
+                  :total (paying-pax row)}
+     :free-pax {:bus-bus-connections (free-bus-bus-conn-pax row)
+                :normal (free-normal-pax row)
+                :student (free-student-pax row)
+                :total (free-pax row)}
+     :total-pax (total-pax row)})
+)
