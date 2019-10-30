@@ -31,6 +31,9 @@
 (fact "parser-a/auxiliar-terminus parses main terminus"
   (parser-a/auxiliar-terminus row-type-a) => "MORRO GRANDE")
 
+(fact "parser-a/company parses main terminus"
+  (parser-a/company row-type-a) => "202")
+
 (fact "paying pax totals are successfully parsed"
   (parser-a/paying-cash-pax row-type-a) => 3
   (parser-a/paying-normal-work-card-pax row-type-a) => 35
@@ -55,6 +58,7 @@
                                   :branch-code "11"
                                   :main-terminus "METRO BARRA FUNDA"
                                   :auxiliar-terminus "MORRO GRANDE"
+                                  :company "202"
                                   :paying-pax {:cash 3
                                                :normal-and-work-card 35
                                                :student 1

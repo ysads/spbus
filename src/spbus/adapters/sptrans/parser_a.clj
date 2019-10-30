@@ -49,6 +49,10 @@
   (let [terminus (line-terminus row)]
       (last (str/split terminus #"/"))))
 
+(defn company
+  [row]
+  (spreadsheet/cell-value row 3))
+
 (defn paying-cash-pax
   [row]
   (int (spreadsheet/cell-value row 5)))
@@ -110,6 +114,7 @@
      :branch-code (branch-code id)
      :main-terminus (main-terminus row)
      :auxiliar-terminus (auxiliar-terminus row)
+     :company (company row)
      :paying-pax {:cash (paying-cash-pax row)
                   :normal-and-work-card (paying-normal-work-card-pax row)
                   :student (paying-student-pax row)
