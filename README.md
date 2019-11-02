@@ -1,3 +1,7 @@
+[![Travis CI build](https://img.shields.io/travis/ysads/spbus/master.svg?style=flat-square)](https://travis-ci.org/ysads/spbus)
+[![codecov](https://img.shields.io/codecov/c/github/ysads/spbus?style=flat-square)](https://codecov.io/gh/ysads/spbus)
+
+
 # spbus
 
 A Clojure library designed to ... well, that part is up to you.
