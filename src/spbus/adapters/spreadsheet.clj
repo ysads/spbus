@@ -17,6 +17,14 @@
   [sheet]
   (sheet/row-seq sheet))
 
+(defn nth-row
+  [sheet row-number & {:keys [header-size]}]
+  (let [sheet-rows (rows sheet)]
+    (if header-size
+      (-> (drop header-size sheet-rows)
+          (nth row-number))
+      (nth sheet-rows row-number))))
+
 (defn cell-value
   "Returns the cell value in its proper type"
   ([cell]

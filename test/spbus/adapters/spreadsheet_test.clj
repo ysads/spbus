@@ -15,6 +15,14 @@
   (seq? (spreadsheet/rows sheet-1)) => true
   (seq? (spreadsheet/rows sheet-2)) => true)
 
+(def rows-sheet-1 (spreadsheet/rows sheet-1))
+
+(fact "spreadsheet/nth-row gets the proper row from the sheet"
+  (spreadsheet/nth-row sheet-1 0) => (nth rows-sheet-1 0)
+  (spreadsheet/nth-row sheet-1 1) => (nth rows-sheet-1 1)
+  (spreadsheet/nth-row sheet-1 0 :header-size 1) => (nth rows-sheet-1 1)
+  (spreadsheet/nth-row sheet-1 4 :header-size 2) => (nth rows-sheet-1 6))
+
 (defn sample-cell
   [sheet cell-number]
   (-> (spreadsheet/rows sheet)
