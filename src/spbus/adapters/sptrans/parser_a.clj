@@ -20,6 +20,12 @@
               (- (count id) 2)
               (count id)))
 
+(defn ^:private line-terminus
+  [row]
+  (let [content (spreadsheet/cell-value row 4)]
+    (-> (str/split content #" - ")
+        (last))))
+
 (defn line-id
   "The line unique and distinct ID."
   [row]
@@ -32,12 +38,6 @@
   [row]
   (let [raw-id (line-id row)]
     (str (line-code raw-id) "-" (branch-code raw-id))))
-
-(defn ^:private line-terminus
-  [row]
-  (let [content (spreadsheet/cell-value row 4)]
-    (-> (str/split content #" - ")
-        (last))))
 
 (defn main-terminus
   [row]
@@ -105,25 +105,49 @@
   [row]
   (= 16 (count row)))
 
+(defn pre-boarding?
+  [row]
+  (let [id (line-id row)]
+    (some? (re-matches #"^([0-9]+PR).*" id))))
+
+(defn basic-info
+  [row]
+  (let [id (line-id row)]
+    {:company (company row)
+     :line-id id
+     :line-code (line-code id)
+     :branch-code (branch-code id)}))
+
+(defn with-pre-boarding
+  [data row]
+  (merge data {:pre-boarding (pre-boarding? row)}))
+
+(defn with-terminus
+  [data row]
+  (merge data (if (pre-boarding? row)
+                  {:terminus (main-terminus row)}
+                  {:main-terminus (main-terminus row)
+                   :auxiliar-terminus (auxiliar-terminus row)})))
+
+(defn with-pax-totals
+  [data row]
+  (merge data {:paying-pax {:cash (paying-cash-pax row)
+                            :normal-and-work-card (paying-normal-work-card-pax row)
+                            :student (paying-student-pax row)
+                            :month-pass-normal (paying-month-pass-normal-pax row)
+                            :month-pass-work (paying-month-pass-work-pax row)
+                            :month-pass-student (paying-month-pass-student-pax row)
+                            :total (paying-pax row)}
+               :free-pax {:bus-bus-connections (free-bus-bus-conn-pax row)
+                          :normal (free-normal-pax row)
+                          :student (free-student-pax row)
+                          :total (free-pax row)}
+               :total-pax (total-pax row)}))
+
 (defn parse
   "Returns a map containing all the line information"
   [row]
-  (let [id (line-id row)]
-    {:line-id id
-     :line-code (line-code id)
-     :branch-code (branch-code id)
-     :main-terminus (main-terminus row)
-     :auxiliar-terminus (auxiliar-terminus row)
-     :company (company row)
-     :paying-pax {:cash (paying-cash-pax row)
-                  :normal-and-work-card (paying-normal-work-card-pax row)
-                  :student (paying-student-pax row)
-                  :month-pass-normal (paying-month-pass-normal-pax row)
-                  :month-pass-work (paying-month-pass-work-pax row)
-                  :month-pass-student (paying-month-pass-student-pax row)
-                  :total (paying-pax row)}
-     :free-pax {:bus-bus-connections (free-bus-bus-conn-pax row)
-                :normal (free-normal-pax row)
-                :student (free-student-pax row)
-                :total (free-pax row)}
-     :total-pax (total-pax row)}))
+  (-> (basic-info row)
+      (with-pre-boarding row)
+      (with-terminus row)
+      (with-pax-totals row)))
