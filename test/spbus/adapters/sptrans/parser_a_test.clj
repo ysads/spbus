@@ -15,11 +15,14 @@
 (def type-a-sheet (spreadsheet/load-sheet "./test/fixtures/sptrans/type_a.xls"))
 (def row-normal (nth-row-in-sheet type-a-sheet 0))
 (def row-pre-boarding (nth-row-in-sheet type-a-sheet 1))
+(def row-bad-format (nth-row-in-sheet type-a-sheet 2))
+(def row-single-terminus (nth-row-in-sheet type-a-sheet 3))
 
 (fact "parser-a/parseable? returns true only for a valid type a row"
   (parser-a/parseable? row-type-b) => false
   (parser-a/parseable? row-normal) => true
-  (parser-a/parseable? row-pre-boarding) => true)
+  (parser-a/parseable? row-pre-boarding) => true
+  (parser-a/parseable? row-bad-format) => true)
 
 (fact "parser-a/pre-boarding? returns true if the row doesnt represent a line"
   (parser-a/pre-boarding? row-normal) => false
@@ -32,10 +35,14 @@
   (parser-a/pretty-line-id row-normal) => "N143-11")
 
 (fact "parser-a/main-terminus parses main terminus"
-  (parser-a/main-terminus row-normal) => "METRO BARRA FUNDA")
+  (parser-a/main-terminus row-normal) => "METRO BARRA FUNDA"
+  (parser-a/main-terminus row-bad-format) => "PQ RES COCAIA"
+  (parser-a/main-terminus row-single-terminus) => "DETRAN")
 
 (fact "parser-a/auxiliar-terminus parses main terminus"
-  (parser-a/auxiliar-terminus row-normal) => "MORRO GRANDE")
+  (parser-a/auxiliar-terminus row-normal) => "MORRO GRANDE"
+  (parser-a/auxiliar-terminus row-bad-format) => "DETRAN"
+  (parser-a/auxiliar-terminus row-single-terminus) => "DETRAN")
 
 (fact "parser-a/company parses main terminus"
   (parser-a/company row-normal) => "202")

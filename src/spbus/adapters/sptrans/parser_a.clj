@@ -4,6 +4,9 @@
             [spbus.adapters.spreadsheet :as spreadsheet])
   (:gen-class))
 
+(def terminus-first-char-index 9)
+(def terminus-inter-separator #"(-)|(/)")
+
 (defn ^:private line-code
   "Returns the line main code. Examples:
    - 803210 => 8032
@@ -23,8 +26,7 @@
 (defn ^:private line-terminus
   [row]
   (let [content (spreadsheet/cell-value row 4)]
-    (-> (str/split content #" - ")
-        (last))))
+    (str/upper-case (subs content terminus-first-char-index))))
 
 (defn line-id
   "The line unique and distinct ID."
@@ -41,13 +43,15 @@
 
 (defn main-terminus
   [row]
-  (let [terminus (line-terminus row)]
-    (first (str/split terminus #"/"))))
+  (let [terminus (line-terminus row)
+        split-terminus (str/split terminus terminus-inter-separator)]
+    (str/trim (first split-terminus))))
 
 (defn auxiliar-terminus
   [row]
-  (let [terminus (line-terminus row)]
-      (last (str/split terminus #"/"))))
+  (let [terminus (line-terminus row)
+        split-terminus (str/split terminus terminus-inter-separator)]
+    (str/trim (last split-terminus))))
 
 (defn company
   [row]
