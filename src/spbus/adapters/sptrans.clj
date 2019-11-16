@@ -92,25 +92,34 @@
          (flatten)
          (sort-by #(time/as (:date %) :day-of-year)))))
 
+(defn link-of-date
+  "Returns the link for a given date."
+  [date]
+  (->> (year-links statistics-url)
+       (filter #(= (:date %) (time/local-date date)))
+       (first)))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Parsing related stuff
 ;;
 
-(defn all-statistics
+(defn ^:private all-statistics
   "Drops the worksheet header leaving just the raw data."
   [worksheet]
   (->> (spreadsheet/rows worksheet)
        (drop 3)
        (seq)))
 
-(defn row->line-statistics
+(defn ^:private row->line-statistics
   [raw-row]
   (let [row (seq raw-row)]
     (cond
       (parser-a/parseable? row) (parser-a/parse row)
       :else nil)))
 
-(defn statistics-of-day
+(defn statistics-from-link
+  "Parses all available statistics based on a given link. These statistics
+  are parsed according to their proper parsers."
   [link]
   (let [worksheet (spreadsheet/load-sheet (:url link))
         data (all-statistics worksheet)]
