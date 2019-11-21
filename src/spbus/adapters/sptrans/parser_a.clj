@@ -6,6 +6,7 @@
 
 (def terminus-first-char-index 9)
 (def terminus-inter-separator #"(-)|(/)")
+(def terminus-preboarding-tokens ["TSATER" "EXP TIRADENTES" "5105"])
 
 (defn ^:private line-code
   "Returns the line main code. Examples:
@@ -24,9 +25,21 @@
               (count id)))
 
 (defn ^:private line-terminus
+  "The full line terminus, potentially including main and auxiliar
+  terminuses as long as some pre-boarding keywords."
   [row]
   (let [content (spreadsheet/cell-value row 4)]
     (str/upper-case (subs content terminus-first-char-index))))
+
+(defn ^:private terminus-include-pre-boarding-token?
+  "Returns true if line terminus contains any of the tokens
+  which indicates a pre-boarding."
+  [row]
+  (let [terminus (line-terminus row)]
+    (reduce (fn [result token]
+              (or result (str/includes? terminus token)))
+            false
+            terminus-preboarding-tokens)))
 
 (defn line-id
   "The line unique and distinct ID."
@@ -112,7 +125,8 @@
 (defn pre-boarding?
   [row]
   (let [id (line-id row)]
-    (some? (re-matches #"^([0-9]+PR).*" id))))
+    (or (some? (re-matches #"^([0-9]+PR).*" id))
+        (terminus-include-pre-boarding-token? row))))
 
 (defn basic-info
   [row]

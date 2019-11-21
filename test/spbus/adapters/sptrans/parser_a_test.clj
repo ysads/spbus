@@ -17,16 +17,22 @@
 (def row-pre-boarding (nth-row-in-sheet type-a-sheet 1))
 (def row-bad-format (nth-row-in-sheet type-a-sheet 2))
 (def row-single-terminus (nth-row-in-sheet type-a-sheet 3))
+(def row-exp-tiradentes (nth-row-in-sheet type-a-sheet 4))
+
+(fact "parser-a/terminus-preboarding-tokens include only Expresso Tiradentes tokens"
+  parser-a/terminus-preboarding-tokens => ["TSATER" "EXP TIRADENTES" "5105"])
 
 (fact "parser-a/parseable? returns true only for a valid type a row"
   (parser-a/parseable? row-type-b) => false
   (parser-a/parseable? row-normal) => true
   (parser-a/parseable? row-pre-boarding) => true
+  (parser-a/parseable? row-exp-tiradentes) => true
   (parser-a/parseable? row-bad-format) => true)
 
 (fact "parser-a/pre-boarding? returns true if the row doesnt represent a line"
   (parser-a/pre-boarding? row-normal) => false
-  (parser-a/pre-boarding? row-pre-boarding) => true)
+  (parser-a/pre-boarding? row-pre-boarding) => true
+  (parser-a/pre-boarding? row-exp-tiradentes) => true)
 
 (fact "parser-a/line-id parses line ID"
   (parser-a/line-id row-normal) => "N14311")
@@ -66,6 +72,15 @@
   (parser-a/total-pax row-normal) => 69)
 
 (fact "parser-a/parse returns a map with all information"
+  (parser-a/parse row-pre-boarding) => (contains {:pre-boarding true})
+  (parser-a/parse row-exp-tiradentes) => (contains {:pre-boarding true})
+  (parser-a/parse row-single-terminus) => (contains {:pre-boarding false
+                                                     :main-terminus "DETRAN"
+                                                     :auxiliar-terminus "DETRAN"})
+  (parser-a/parse row-bad-format) => (contains {:pre-boarding false
+                                                :main-terminus "PQ RES COCAIA"
+                                                :auxiliar-terminus "DETRAN"
+                                                :line-id "536241"})
   (parser-a/parse row-normal) => {:pre-boarding false
                                   :line-id "N14311"
                                   :line-code "N143"
