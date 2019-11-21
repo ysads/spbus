@@ -63,11 +63,15 @@
 (defn auxiliar-terminus
   [row]
   (let [terminus (line-terminus row)]
-				(str/trim (last (str/split terminus terminus-inter-separator)))))
+    (str/trim (last (str/split terminus terminus-inter-separator)))))
 
 (defn company
   [row]
   (spreadsheet/cell-value row 3))
+
+(defn area
+  [row]
+  (str (last (spreadsheet/cell-value row 2))))
 
 (defn paying-cash-pax
   [row]
@@ -142,7 +146,9 @@
 (defn basic-info
   [row]
   (let [id (line-id row)]
-    {:company (company row)
+    {:transport-mode "bus"
+     :company (company row)
+     :area (area row)
      :line-id id
      :line-code (line-code id)
      :branch-code (branch-code id)}))
@@ -154,27 +160,27 @@
 (defn with-terminus
   [data row]
   (merge data (if (pre-boarding? row)
-                  {:terminus (main-terminus row)}
+                  {:terminus (line-terminus row)}
                   {:main-terminus (main-terminus row)
                    :auxiliar-terminus (auxiliar-terminus row)})))
 
 (defn with-pax-totals
   [data row]
   (merge data {:paying-pax {:cash (paying-cash-pax row)
-										                  :normal (paying-normal-pax row)
-										                  :work-card (paying-work-card-pax row)
-										                  :student (paying-student-pax row)
-										                  :rail-bus-connections (paying-rail-bus-conn-pax row)
-										                  :month-pass-normal (paying-month-pass-normal-pax row)
-										                  :month-pass-work (paying-month-pass-work-pax row)
-										                  :month-pass-student (paying-month-pass-student-pax row)
-										                  :month-pass-rail-bus-connections (paying-month-pass-rail-bus-conn-pax row)
-										                  :total (paying-pax row)}
-										     :free-pax {:bus-bus-connections (free-bus-bus-conn-pax row)
-										                :normal (free-normal-pax row)
-										                :student (free-student-pax row)
-										                :total (free-pax row)}
-										     :total-pax (total-pax row)}))
+                            :normal (paying-normal-pax row)
+                            :work-card (paying-work-card-pax row)
+                            :student (paying-student-pax row)
+                            :rail-bus-connections (paying-rail-bus-conn-pax row)
+                            :month-pass-normal (paying-month-pass-normal-pax row)
+                            :month-pass-work (paying-month-pass-work-pax row)
+                            :month-pass-student (paying-month-pass-student-pax row)
+                            :month-pass-rail-bus-connections (paying-month-pass-rail-bus-conn-pax row)
+                            :total (paying-pax row)}
+               :free-pax {:bus-bus-connections (free-bus-bus-conn-pax row)
+                          :normal (free-normal-pax row)
+                          :student (free-student-pax row)
+                          :total (free-pax row)}
+               :total-pax (total-pax row)}))
 
 (defn parse
   "Returns a map containing all the line information"

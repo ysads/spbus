@@ -25,10 +25,13 @@
   (parser-b/parseable? row-normal) => true)
 
 (fact "parser-b/line-id parses line ID"
+  (parser-b/line-id row-pre-boarding) => "9932PR"
   (parser-b/line-id row-bad-format) => "536210"
   (parser-b/line-id row-normal) => "N10511")
 
 (fact "parser-b/pretty-line-id formats line ID"
+  (parser-b/pretty-line-id row-pre-boarding) => "9932-PR"
+  (parser-b/pretty-line-id row-bad-format) => "5362-10"
   (parser-b/pretty-line-id row-normal) => "N105-11")
 
 (fact "parser-b/main-terminus parses main terminus"
@@ -41,10 +44,15 @@
   (parser-b/auxiliar-terminus row-bad-format) => "PÇA DA SÉ"
   (parser-b/auxiliar-terminus row-normal) => "TERM LAPA")
 
-(fact "parser-b/company parses main terminus"
+(fact "parser-b/company parses the line operator"
   (parser-b/company row-pre-boarding) => "VIP II"
   (parser-b/company row-bad-format) => "CIDADE DUTRA"
   (parser-b/company row-normal) => "GATO PRETO")
+
+(fact "parser-b/area parses the line operating area"
+  (parser-b/area row-pre-boarding) => "7"
+  (parser-b/area row-bad-format) => "6"
+  (parser-b/area row-normal) => "1")
 
 (fact "paying pax totals are successfully parsed"
   (parser-b/paying-cash-pax row-normal) => 64
@@ -68,19 +76,26 @@
   (parser-b/total-pax row-normal) => 305)
 
 (fact "parser-b/parse returns a map with all information"
-		(parser-b/parse row-pre-boarding) => (contains {:pre-boarding true})
-  (parser-b/parse row-exp-tiradentes) => (contains {:pre-boarding true})
+		(parser-b/parse row-pre-boarding) => (contains {:pre-boarding true
+																																																		:terminus "TERM CIDADE TIRADENTES/VIP"
+																																																		:transport-mode "bus"})
+  (parser-b/parse row-exp-tiradentes) => (contains {:pre-boarding true
+  																																																		:terminus "EXP TIRADENTES - ANA NERI"
+  																																																		:transport-mode "bus"})
   (parser-b/parse row-bad-format) => (contains {:pre-boarding false
                                                 :main-terminus "PQ RES COCAIA"
                                                 :auxiliar-terminus "PÇA DA SÉ"
-                                                :line-id "536210"})
+                                                :line-id "536210"
+                                                :transport-mode "bus"})
   (parser-b/parse row-normal) => {:pre-boarding false
+  																																:transport-mode "bus"
+  																																:company "GATO PRETO"
+  																																:area "1"
   																																:line-id "N10511"
                                   :line-code "N105"
                                   :branch-code "11"
                                   :main-terminus "TERM CACHOEIRINHA"
                                   :auxiliar-terminus "TERM LAPA"
-                                  :company "GATO PRETO"
                                   :paying-pax {:cash 64
                                                :normal 30
                                                :work-card 19
