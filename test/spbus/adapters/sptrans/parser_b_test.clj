@@ -40,7 +40,7 @@
   (parser-b/main-terminus row-normal) => "TERM CACHOEIRINHA")
 
 (fact "parser-b/auxiliar-terminus parses main terminus"
-		(parser-b/auxiliar-terminus row-pre-boarding) => "VIP"
+  (parser-b/auxiliar-terminus row-pre-boarding) => "VIP"
   (parser-b/auxiliar-terminus row-bad-format) => "PÇA DA SÉ"
   (parser-b/auxiliar-terminus row-normal) => "TERM LAPA")
 
@@ -76,22 +76,22 @@
   (parser-b/total-pax row-normal) => 305)
 
 (fact "parser-b/parse returns a map with all information"
-		(parser-b/parse row-pre-boarding) => (contains {:pre-boarding true
-																																																		:terminus "TERM CIDADE TIRADENTES/VIP"
-																																																		:transport-mode "bus"})
+  (parser-b/parse row-pre-boarding) => (contains {:pre-boarding true
+                                                  :terminus "TERM CIDADE TIRADENTES/VIP"
+                                                  :transport-mode "bus"})
   (parser-b/parse row-exp-tiradentes) => (contains {:pre-boarding true
-  																																																		:terminus "EXP TIRADENTES - ANA NERI"
-  																																																		:transport-mode "bus"})
+                                                    :terminus "EXP TIRADENTES - ANA NERI"
+                                                    :transport-mode "bus"})
   (parser-b/parse row-bad-format) => (contains {:pre-boarding false
                                                 :main-terminus "PQ RES COCAIA"
                                                 :auxiliar-terminus "PÇA DA SÉ"
                                                 :line-id "536210"
                                                 :transport-mode "bus"})
   (parser-b/parse row-normal) => {:pre-boarding false
-  																																:transport-mode "bus"
-  																																:company "GATO PRETO"
-  																																:area "1"
-  																																:line-id "N10511"
+                                  :transport-mode "bus"
+                                  :company "GATO PRETO"
+                                  :area "1"
+                                  :line-id "N10511"
                                   :line-code "N105"
                                   :branch-code "11"
                                   :main-terminus "TERM CACHOEIRINHA"
