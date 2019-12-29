@@ -54,16 +54,17 @@
             false
             preboarding-tokens)))
 
-
 (defn main-terminus
   [row]
-  (let [terminus (line-terminus row)]
-    (str/trim (first (str/split terminus terminus-inter-separator)))))
+  (let [line-route (route row)
+        split-terminus (str/split line-route terminus-inter-separator)]
+    (str/trim (first split-terminus))))
 
 (defn auxiliar-terminus
   [row]
-  (let [terminus (line-terminus row)]
-    (str/trim (last (str/split terminus terminus-inter-separator)))))
+  (let [line-route (route row)
+        split-terminus (str/split line-route terminus-inter-separator)]
+    (str/trim (last split-terminus))))
 
 (defn company
   [row]
@@ -162,7 +163,7 @@
   (merge data (if (pre-boarding? row)
                   {:route (route row)
                    :terminus (main-terminus row)}
-                  {:route (line-terminus row)
+                  {:route (route row)
                    :main-terminus (main-terminus row)
                    :auxiliar-terminus (auxiliar-terminus row)})))
 

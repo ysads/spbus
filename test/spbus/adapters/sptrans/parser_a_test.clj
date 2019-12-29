@@ -97,6 +97,7 @@
                                   :auxiliar-terminus "MORRO GRANDE"
                                   :route "METRO BARRA FUNDA/MORRO GRANDE"
                                   :company "202"
+                                  :area "1"
                                   :paying-pax {:cash 3
                                                :normal-and-work-card 35
                                                :student 1

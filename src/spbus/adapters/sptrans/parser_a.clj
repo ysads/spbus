@@ -56,19 +56,23 @@
 
 (defn main-terminus
   [row]
-  (let [terminus (route row)
-        split-terminus (str/split terminus terminus-inter-separator)]
+  (let [line-route (route row)
+        split-terminus (str/split line-route terminus-inter-separator)]
     (str/trim (first split-terminus))))
 
 (defn auxiliar-terminus
   [row]
-  (let [terminus (route row)
-        split-terminus (str/split terminus terminus-inter-separator)]
+  (let [line-route (route row)
+        split-terminus (str/split line-route terminus-inter-separator)]
     (str/trim (last split-terminus))))
 
 (defn company
   [row]
   (spreadsheet/cell-value row 3))
+
+(defn area
+  [row]
+  (str (last (spreadsheet/cell-value row 2))))
 
 (defn paying-cash-pax
   [row]
@@ -132,6 +136,7 @@
   [row]
   (let [id (line-id row)]
     {:company (company row)
+     :area (area row)
      :line-id id
      :line-code (line-code id)
      :branch-code (branch-code id)
