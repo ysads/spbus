@@ -19,8 +19,8 @@
 (def row-single-terminus (nth-row-in-sheet type-a-sheet 3))
 (def row-exp-tiradentes (nth-row-in-sheet type-a-sheet 4))
 
-(fact "parser-a/terminus-preboarding-tokens include only Expresso Tiradentes tokens"
-  parser-a/terminus-preboarding-tokens => ["TSATER" "EXP TIRADENTES" "5105"])
+(fact "parser-a/preboarding-tokens include only Expresso Tiradentes tokens"
+  parser-a/preboarding-tokens => ["TSATER" "EXP TIRADENTES" "5105"])
 
 (fact "parser-a/parseable? returns true only for a valid type a row"
   (parser-a/parseable? row-type-b) => false
@@ -72,21 +72,30 @@
   (parser-a/total-pax row-normal) => 69)
 
 (fact "parser-a/parse returns a map with all information"
-  (parser-a/parse row-pre-boarding) => (contains {:pre-boarding true})
-  (parser-a/parse row-exp-tiradentes) => (contains {:pre-boarding true})
+  (parser-a/parse row-pre-boarding) => (contains {:pre-boarding true
+                                                  :route "TERM VARGINHA/COOPERPAM"
+                                                  :transport-mode "bus"})
+  (parser-a/parse row-exp-tiradentes) => (contains {:pre-boarding true
+                                                    :terminus "EXP TIRADENTES"
+                                                    :transport-mode "bus"})
   (parser-a/parse row-single-terminus) => (contains {:pre-boarding false
                                                      :main-terminus "DETRAN"
-                                                     :auxiliar-terminus "DETRAN"})
+                                                     :auxiliar-terminus "DETRAN"
+                                                     :route "DETRAN"
+                                                     :transport-mode "bus"})
   (parser-a/parse row-bad-format) => (contains {:pre-boarding false
                                                 :main-terminus "PQ RES COCAIA"
                                                 :auxiliar-terminus "DETRAN"
-                                                :line-id "536241"})
+                                                :route "PQ RES COCAIA - DETRAN"
+                                                :line-id "536241"
+                                                :transport-mode "bus"})
   (parser-a/parse row-normal) => {:pre-boarding false
                                   :line-id "N14311"
                                   :line-code "N143"
                                   :branch-code "11"
                                   :main-terminus "METRO BARRA FUNDA"
                                   :auxiliar-terminus "MORRO GRANDE"
+                                  :route "METRO BARRA FUNDA/MORRO GRANDE"
                                   :company "202"
                                   :paying-pax {:cash 3
                                                :normal-and-work-card 35
@@ -99,4 +108,5 @@
                                              :normal 7
                                              :student 1
                                              :total 26}
-                                  :total-pax 69})
+                                  :total-pax 69
+                                  :transport-mode "bus"})

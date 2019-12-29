@@ -77,14 +77,15 @@
 
 (fact "parser-b/parse returns a map with all information"
   (parser-b/parse row-pre-boarding) => (contains {:pre-boarding true
-                                                  :terminus "TERM CIDADE TIRADENTES/VIP"
+                                                  :route "TERM CIDADE TIRADENTES/VIP"
                                                   :transport-mode "bus"})
   (parser-b/parse row-exp-tiradentes) => (contains {:pre-boarding true
-                                                    :terminus "EXP TIRADENTES - ANA NERI"
+                                                    :route "EXP TIRADENTES - ANA NERI"
                                                     :transport-mode "bus"})
   (parser-b/parse row-bad-format) => (contains {:pre-boarding false
                                                 :main-terminus "PQ RES COCAIA"
                                                 :auxiliar-terminus "PÇA DA SÉ"
+                                                :route "PQ RES COCAIA - PÇA DA SÉ"
                                                 :line-id "536210"
                                                 :transport-mode "bus"})
   (parser-b/parse row-normal) => {:pre-boarding false
@@ -96,6 +97,7 @@
                                   :branch-code "11"
                                   :main-terminus "TERM CACHOEIRINHA"
                                   :auxiliar-terminus "TERM LAPA"
+                                  :route "TERM CACHOEIRINHA/TERM LAPA"
                                   :paying-pax {:cash 64
                                                :normal 30
                                                :work-card 19

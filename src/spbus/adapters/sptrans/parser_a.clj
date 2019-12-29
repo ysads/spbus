@@ -6,7 +6,7 @@
 
 (def terminus-first-char-index 9)
 (def terminus-inter-separator #"(-)|(/)")
-(def terminus-preboarding-tokens ["TSATER" "EXP TIRADENTES" "5105"])
+(def preboarding-tokens ["TSATER" "EXP TIRADENTES" "5105"])
 
 (defn ^:private line-code
   "Returns the line main code. Examples:
@@ -16,7 +16,7 @@
   (.substring (java.lang.String. id) 0 (- (count id) 2)))
 
 (defn ^:private branch-code
-  "Returns the line main code. Examples:
+  "Returns the line branch code. Examples:
    - 803210 => 10
    - N81211 => 11"
   [id]
@@ -24,22 +24,22 @@
               (- (count id) 2)
               (count id)))
 
-(defn ^:private line-terminus
-  "The full line terminus, potentially including main and auxiliar
+(defn ^:private route
+  "The full line route, potentially including main and auxiliar
   terminuses as long as some pre-boarding keywords."
   [row]
   (let [content (spreadsheet/cell-value row 4)]
     (str/upper-case (subs content terminus-first-char-index))))
 
-(defn ^:private terminus-include-pre-boarding-token?
-  "Returns true if line terminus contains any of the tokens
+(defn ^:private route-include-pre-boarding-token?
+  "Returns true if line route contains any of the tokens
   which indicates a pre-boarding."
   [row]
-  (let [terminus (line-terminus row)]
+  (let [route (route row)]
     (reduce (fn [result token]
-              (or result (str/includes? terminus token)))
+              (or result (str/includes? route token)))
             false
-            terminus-preboarding-tokens)))
+            preboarding-tokens)))
 
 (defn line-id
   "The line unique and distinct ID."
@@ -56,13 +56,13 @@
 
 (defn main-terminus
   [row]
-  (let [terminus (line-terminus row)
+  (let [terminus (route row)
         split-terminus (str/split terminus terminus-inter-separator)]
     (str/trim (first split-terminus))))
 
 (defn auxiliar-terminus
   [row]
-  (let [terminus (line-terminus row)
+  (let [terminus (route row)
         split-terminus (str/split terminus terminus-inter-separator)]
     (str/trim (last split-terminus))))
 
@@ -126,7 +126,7 @@
   [row]
   (let [id (line-id row)]
     (or (some? (re-matches #"^([0-9]+PR).*" id))
-        (terminus-include-pre-boarding-token? row))))
+        (route-include-pre-boarding-token? row))))
 
 (defn basic-info
   [row]
@@ -134,17 +134,20 @@
     {:company (company row)
      :line-id id
      :line-code (line-code id)
-     :branch-code (branch-code id)}))
+     :branch-code (branch-code id)
+     :transport-mode "bus"}))
 
 (defn with-pre-boarding
   [data row]
   (merge data {:pre-boarding (pre-boarding? row)}))
 
-(defn with-terminus
+(defn with-route-details
   [data row]
   (merge data (if (pre-boarding? row)
-                  {:terminus (main-terminus row)}
-                  {:main-terminus (main-terminus row)
+                  {:route (route row)
+                   :terminus (main-terminus row)}
+                  {:route (route row)
+                   :main-terminus (main-terminus row)
                    :auxiliar-terminus (auxiliar-terminus row)})))
 
 (defn with-pax-totals
@@ -167,5 +170,5 @@
   [row]
   (-> (basic-info row)
       (with-pre-boarding row)
-      (with-terminus row)
+      (with-route-details row)
       (with-pax-totals row)))

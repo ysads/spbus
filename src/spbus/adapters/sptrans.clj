@@ -4,6 +4,7 @@
             [java-time :as time]
             [reaver :as r]
             [spbus.adapters.sptrans.parser-a :as parser-a]
+            [spbus.adapters.sptrans.parser-b :as parser-b]
             [spbus.adapters.spreadsheet :as spreadsheet])
   (:gen-class))
 
@@ -115,6 +116,7 @@
   (let [row (seq raw-row)]
     (cond
       (parser-a/parseable? row) (parser-a/parse row)
+      (parser-b/parseable? row) (parser-b/parse row)
       :else nil)))
 
 (defn statistics-from-link

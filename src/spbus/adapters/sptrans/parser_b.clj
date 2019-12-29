@@ -6,7 +6,7 @@
 
 (def terminus-first-char-index 9)
 (def terminus-inter-separator #"(-)|(/)")
-(def terminus-preboarding-tokens ["TSATER" "EXP TIRADENTES" "5105"])
+(def preboarding-tokens ["TSATER" "EXP TIRADENTES" "5105"])
 
 (defn ^:private line-code
   "Returns the line main code. Examples:
@@ -16,7 +16,7 @@
   (.substring (java.lang.String. id) 0 (- (count id) 2)))
 
 (defn ^:private branch-code
-  "Returns the line main code. Examples:
+  "Returns the line branch code. Examples:
    - 803210 => 10
    - N81211 => 11"
   [id]
@@ -37,7 +37,7 @@
   (let [raw-id (line-id row)]
     (str (line-code raw-id) "-" (branch-code raw-id))))
 
-(defn ^:private line-terminus
+(defn ^:private route
   "The full line terminus, potentially including main and auxiliar
   terminuses as long as some pre-boarding keywords."
   [row]
@@ -48,11 +48,11 @@
   "Returns true if line terminus contains any of the tokens
   which indicates a pre-boarding."
   [row]
-  (let [terminus (line-terminus row)]
+  (let [route (route row)]
     (reduce (fn [result token]
-              (or result (str/includes? terminus token)))
+              (or result (str/includes? route token)))
             false
-            terminus-preboarding-tokens)))
+            preboarding-tokens)))
 
 
 (defn main-terminus
@@ -157,11 +157,13 @@
   [data row]
   (merge data {:pre-boarding (pre-boarding? row)}))
 
-(defn with-terminus
+(defn with-route-details
   [data row]
   (merge data (if (pre-boarding? row)
-                  {:terminus (line-terminus row)}
-                  {:main-terminus (main-terminus row)
+                  {:route (route row)
+                   :terminus (main-terminus row)}
+                  {:route (line-terminus row)
+                   :main-terminus (main-terminus row)
                    :auxiliar-terminus (auxiliar-terminus row)})))
 
 (defn with-pax-totals
@@ -187,5 +189,5 @@
   [row]
   (-> (basic-info row)
       (with-pre-boarding row)
-      (with-terminus row)
+      (with-route-details row)
       (with-pax-totals row)))
