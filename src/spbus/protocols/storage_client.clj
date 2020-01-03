@@ -9,4 +9,6 @@
   (find [storage entity conditions]
     "Returns a collection of objects based on given conditions.")
   (put! [storage entity data]
-    "Insert a new object to database under given entity."))
+    "Insert a new object to database under given entity.")
+  (delete! [storage entity conditions]
+    "Removes a record from database."))

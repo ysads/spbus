@@ -39,6 +39,12 @@
   [db entity conditions]
   (monger-data/find-maps db entity conditions))
 
+(defn ^:private delete-collection!
+  [db entity conditions]
+  (if (empty? conditions)
+    (str "Can not delete without conditions")
+    (monger-data/remove db entity conditions)))
+
 (defrecord MongoStorage [storage]
   component/Lifecycle
   (start [this]
@@ -52,7 +58,9 @@
   (find [_this entity conditions]
     (find-collection! (:db storage) entity conditions))
   (put! [_this entity data]
-    (insert-data! (:db storage) entity data)))
+    (insert-data! (:db storage) entity data))
+  (delete! [_this entity conditions]
+    (delete-collection! (:db storage) entity conditions)))
 
 (defn new-storage
   [system]
