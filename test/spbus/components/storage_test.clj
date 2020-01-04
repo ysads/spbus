@@ -1,8 +1,11 @@
 (ns spbus.components.storage-test
-  (:require [spbus.components.storage :as storage]
-            [spbus.protocols.storage-client :as client]
+  (:require [failjure.core :as fail]
+            [java-time :as time]
+            [midje.sweet :refer :all]
             [monger.collection :as monger-data]
-            [midje.sweet :refer :all]))
+            [monger.operators :refer :all]
+            [spbus.components.storage :as storage]
+            [spbus.protocols.storage-client :as client]))
 
 (def *storage* (.start (storage/new-storage {})))
 (def *db* (:db (:storage *storage*)))
@@ -15,16 +18,41 @@
   (facts "about put!"
     (fact "it persists data to mongoDB"
       (client/put! *storage* test-entity {:foo "bar"})
-      (monger-data/count *db* test-entity {:foo "bar"}) => 1))
+      (monger-data/count *db* test-entity {:foo "bar"}) => 1)
+
+    (fact "it assocs :created-at to data being persisted"
+      (let [now (time/local-date-time)]
+        (client/put! *storage* test-entity {:foo "bar"}) => (contains {:created-at (str now)})
+        (provided (time/local-date-time) => now)))
+
+    (fact "it assocs :updated-at to data being persisted"
+      (let [now (time/local-date-time)]
+        (client/put! *storage* test-entity {:foo "bar"}) => (contains {:updated-at (str now)})
+        (provided (time/local-date-time) => now))))
 
   (facts "about find-by-id"
     (fact "finds records using ObjectId instances"
-      (let [oid (client/put! *storage* test-entity {:foo "bar"})]
-        (client/find-by-id *storage* test-entity oid) => {:_id oid
-                                                          :foo "bar"}))
+      (let [data (client/put! *storage* test-entity {:foo "bar"})
+            oid (:_id data)]
+        (client/find-by-id *storage* test-entity oid) => (contains {:_id oid
+                                                                    :foo "bar"})))
 
     (fact "finds records using string"
-      (let [oid (client/put! *storage* test-entity {:foo "bar"})
-            string-id (.toString oid)]
-        (client/find-by-id *storage* test-entity string-id) => {:_id oid
-                                                                :foo "bar"}))))
+      (let [data (client/put! *storage* test-entity {:foo "bar"})
+            oid (:_id data)
+            string-id (.toString (:_id data))]
+        (client/find-by-id *storage* test-entity string-id) => (contains {:_id oid
+                                                                          :foo "bar"}))))
+
+  (facts "about find"
+    (fact "finds a collection of records that match given conditions"
+      (client/put! *storage* test-entity {:foo 1})
+      (client/put! *storage* test-entity {:bar 2})
+      (client/put! *storage* test-entity {:baz 3})
+      (client/find *storage* test-entity {$or [{:foo 1} {:bar 2}]}) => (just (contains {:foo 1})
+                                                                             (contains {:bar 2}) :in-any-order)))
+
+  (facts "about delete!"
+    (fact "it does not allow deletion without conditions"
+      (let [error (client/delete! *storage* test-entity {})]
+        (fail/message error)=> "Can not delete without conditions"))))

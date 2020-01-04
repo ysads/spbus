@@ -7,6 +7,7 @@
                  [com.novemberain/monger "3.1.0"]
                  [com.stuartsierra/component "0.4.0"]
                  [dk.ative/docjure "1.12.0"]
+                 [failjure "2.0.0"] 
                  [org.clojure/clojure "1.10.0"]
                  [org.clojure/spec.alpha "0.2.176"]
                  [reaver "0.1.2"]]
