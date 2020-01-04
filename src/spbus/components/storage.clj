@@ -1,5 +1,7 @@
 (ns spbus.components.storage
   (:require [com.stuartsierra.component :as component]
+            [failjure.core :as fail]
+            [java-time :as time]
             [monger.core :as monger]
             [monger.collection :as monger-data]
             [spbus.protocols.storage-client :as storage-client])
@@ -25,6 +27,15 @@
     id
     (ObjectId. id)))
 
+(defn ^:private insertion-prepared-data
+  "Prepares data to be inserted for the first time on DB."
+  [data]
+  (let [now (str (time/local-date-time))]
+    (-> data
+        (assoc :created-at now)
+        (assoc :updated-at now)
+        (assoc :_id (ObjectId.)))))
+
 (defn ^:private find-one!
   [db entity id]
   (let [oid (object-id id)]
@@ -32,8 +43,7 @@
 
 (defn ^:private insert-data!
   [db entity data]
-  (-> (monger-data/insert-and-return db entity data)
-      :_id))
+  (monger-data/insert-and-return db entity (insertion-prepared-data data)))
 
 (defn ^:private find-collection!
   [db entity conditions]
@@ -42,7 +52,7 @@
 (defn ^:private delete-collection!
   [db entity conditions]
   (if (empty? conditions)
-    (str "Can not delete without conditions")
+    (fail/fail "Can not delete without conditions")
     (monger-data/remove db entity conditions)))
 
 (defrecord MongoStorage [storage]
