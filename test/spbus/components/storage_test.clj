@@ -30,6 +30,21 @@
         (client/put! *storage* test-entity {:foo "bar"}) => (contains {:updated-at (str now)})
         (provided (time/local-date-time) => now))))
 
+  (facts "about update!"
+    (fact "it merges update data into persisted data"
+      (let [data (client/put! *storage* test-entity {:foo 1 :bar 2})
+            oid (:_id data)]
+        (client/update! *storage* test-entity oid {:foo 0 :baz 3}) => (contains {:foo 0
+                                                                                 :bar 2
+                                                                                 :baz 3})))
+
+    (fact "it touches :updated-at attribute of data being persisted"
+      (let [data (client/put! *storage* test-entity {:foo "bar"})
+            oid (:_id data)
+            updated-data (client/update! *storage* test-entity oid {:foo 0})]
+        (:created-at updated-data) => (:created-at data)
+        (:updated-at updated-data) =not=> (:updated-at data))))
+
   (facts "about find-by-id"
     (fact "finds records using ObjectId instances"
       (let [data (client/put! *storage* test-entity {:foo "bar"})
@@ -55,4 +70,13 @@
   (facts "about delete!"
     (fact "it does not allow deletion without conditions"
       (let [error (client/delete! *storage* test-entity {})]
-        (fail/message error)=> "Can not delete without conditions"))))
+        (fail/message error)=> "Can not delete without conditions"))
+
+    (fact "removes from database records which match conditions"
+      (client/put! *storage* test-entity {:foo 1})
+      (client/put! *storage* test-entity {:bar 2})
+      (client/put! *storage* test-entity {:baz 3})
+      (client/delete! *storage* test-entity {$or [{:foo 1} {:bar 2}]})
+      (monger-data/count *db* test-entity {:foo 1}) => 0
+      (monger-data/count *db* test-entity {:bar 2}) => 0
+      (monger-data/count *db* test-entity {:baz 3}) => 1)))
