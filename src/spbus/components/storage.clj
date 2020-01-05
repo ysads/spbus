@@ -49,6 +49,15 @@
   [db entity conditions]
   (monger-data/find-maps db entity conditions))
 
+(defn ^:private update-data!
+  [db entity id data]
+  (let [updated-data (assoc data :updated-at (str (time/local-date-time)))]
+    (monger-data/find-and-modify db
+                                entity
+                                {:_id id}
+                                {:$set updated-data}
+                                {:return-new true})))
+
 (defn ^:private delete-collection!
   [db entity conditions]
   (if (empty? conditions)
@@ -69,6 +78,8 @@
     (find-collection! (:db storage) entity conditions))
   (put! [_this entity data]
     (insert-data! (:db storage) entity data))
+  (update! [_this entity id updated-data]
+    (update-data! (:db storage) entity id updated-data))
   (delete! [_this entity conditions]
     (delete-collection! (:db storage) entity conditions)))
 
