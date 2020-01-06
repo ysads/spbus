@@ -14,7 +14,7 @@
 
 (defn setup-db []
   (alter-var-root #'*storage* (fn [_] (component/start (storage/new-storage {}))))
-  (alter-var-root #'*db* (fn [_] (:db (:storage *storage*)))))
+  (alter-var-root #'*db* (fn [_] (:db *storage*))))
 
 (defn close-db []
   (alter-var-root #'*storage* #(component/stop %)))
@@ -53,10 +53,12 @@
 
     (fact "it touches :updated-at attribute of document being persisted"
       (let [document (client/put! *storage* test-entity {:foo "bar"})
-            doc-id (:_id document)
-            updated-document (client/update! *storage* test-entity doc-id {:foo 0})]
-        (:created-at updated-document) => (:created-at document)
-        (:updated-at updated-document) =not=> (:updated-at document))))
+            doc-id (:_id document)]
+        (Thread/sleep 200) ;; forces a time shift so that :updated-at might be updated
+        (client/update! *storage* test-entity doc-id {:foo 0})
+        (let [updated-document (client/find-by-id *storage* test-entity doc-id)]
+          (:created-at updated-document) => (:created-at document)
+          (:updated-at updated-document) =not=> (:updated-at document)))))
 
   (facts "about find-by-id"
     (fact "finds records using ObjectId instances"

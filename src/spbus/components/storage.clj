@@ -12,12 +12,12 @@
   [this]
   (let [conn (monger/connect)
         db (monger/get-db conn "spbus")]
-    (merge this {:storage {:conn conn :db db}}))) ;; db name should come from a config
+    (merge this {:conn conn :db db}))) ;; db name should come from a config
 
 (defn ^:private close-db-conn
   [this]
-  (monger/disconnect (:conn (:storage this)))
-  (update-in this [:storage] dissoc :conn :storage))
+  (monger/disconnect (:conn this))
+  (dissoc this :conn :db))
 
 (defn ^:private object-id
   "Converts between string and ObjectId instances, always returning a valid
@@ -64,7 +64,7 @@
     (fail/fail "Can not delete without conditions")
     (monger-data/remove db entity conditions)))
 
-(defrecord MongoStorage [storage]
+(defrecord MongoStorage [conn db]
   component/Lifecycle
   (start [this]
     (setup-db-conn this))
@@ -73,15 +73,15 @@
 
   storage-client/StorageClient
   (find-by-id [_this entity id]
-    (find-one! (:db storage) entity id))
+    (find-one! db entity id))
   (find [_this entity conditions]
-    (find-collection! (:db storage) entity conditions))
+    (find-collection! db entity conditions))
   (put! [_this entity data]
-    (insert-data! (:db storage) entity data))
+    (insert-data! db entity data))
   (update! [_this entity id updated-data]
-    (update-data! (:db storage) entity id updated-data))
+    (update-data! db entity id updated-data))
   (delete! [_this entity conditions]
-    (delete-collection! (:db storage) entity conditions)))
+    (delete-collection! db entity conditions)))
 
 (defn new-storage
   [system]
