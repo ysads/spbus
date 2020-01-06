@@ -16,7 +16,7 @@
 
 (defn ^:private close-db-conn
   [this]
-  (monger/disconnect (:conn this))
+  (monger/disconnect (:conn (:storage this)))
   (update-in this [:storage] dissoc :conn :storage))
 
 (defn ^:private object-id
