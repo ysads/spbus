@@ -7,16 +7,16 @@
   config/base-config => {:db-name "spbus"})
 
 (fact "config/new-config merges given configs with base-configs"
-  (config/new-config {:db-port 5432}) => (contains {:config {:db-name "spbus"
-                                                             :db-port 5432}})
-  (config/new-config {:db-name "spbus-test"}) => (contains {:config {:db-name "spbus-test"}}))
+  (config/new-config {:db-port 5432}) => (contains {:db-name "spbus"
+                                                    :db-port 5432})
+  (config/new-config {:db-name "test"}) => (contains {:db-name "test"}))
 
 (facts "about Config component"
   (fact "starting component doesn't change configs stored"
     (-> (config/new-config {})
-        (component/start)) => (contains {:config {:db-name "spbus"}}))
+        (component/start)) => (contains {:db-name "spbus"}))
 
   (fact "stoping component doesn't change configs stored"
     (-> (config/new-config {})
         (component/start)
-        (component/stop)) => (contains {:config {:db-name "spbus"}})))
+        (component/stop)) => (contains {:db-name "spbus"})))
