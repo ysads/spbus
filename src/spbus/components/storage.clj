@@ -5,14 +5,19 @@
             [monger.core :as monger]
             [monger.collection :as monger-data]
             [spbus.protocols.storage-client :as storage-client])
-  (:import org.bson.types.ObjectId)
+  (:import org.bson.types.ObjectId java.lang.IllegalArgumentException)
   (:gen-class))
+
+(defn ^:private db-name
+  [config]
+  (if (:db-name config)
+    (:db-name config)))
 
 (defn ^:private setup-db-conn
   [this]
   (let [conn (monger/connect)
-        db (monger/get-db conn "spbus")]
-    (merge this {:conn conn :db db}))) ;; db name should come from a config
+        db (monger/get-db conn (db-name (:config this)))]
+    (merge this {:conn conn :db db})))
 
 (defn ^:private close-db-conn
   [this]

@@ -11,16 +11,25 @@
 (def *storage* nil)
 (def *db* nil)
 (def test-entity "test")
+(def test-config {:config {:db-name "test"}})
 
 (defn setup-db []
-  (alter-var-root #'*storage* (fn [_] (component/start (storage/new-storage {}))))
-  (alter-var-root #'*db* (fn [_] (:db *storage*))))
+  (alter-var-root #'*storage*
+                  (fn [_] (component/start (storage/new-storage test-config))))
+  (alter-var-root #'*db*
+                  (fn [_] (:db *storage*))))
 
 (defn close-db []
   (alter-var-root #'*storage* #(component/stop %)))
 
 (defn clean-db []
   (monger-document/remove *db* test-entity))
+
+(facts "about db connection"
+  (fact "it connects to DB whose name is given as config argument"
+    (let [db-config {:config {:db-name "test-db"}}
+          storage (component/start (storage/new-storage db-config))]
+      (.getName (:db storage)) => "test-db")))
 
 (with-state-changes [(before :contents (setup-db))
                      (before :facts (clean-db))
