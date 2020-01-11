@@ -6,7 +6,8 @@
             [monger.collection :as monger-document]
             [monger.operators :refer :all]
             [spbus.components.storage :as storage]
-            [spbus.protocols.storage-client :as client]))
+            [spbus.protocols.storage-client :as client])
+  (:import clojure.lang.ExceptionInfo))
 
 (def *storage* nil)
 (def *db* nil)
@@ -26,6 +27,10 @@
   (monger-document/remove *db* test-entity))
 
 (facts "about db connection"
+  (fact "it fails if  no DB name is given at config"
+    (component/start (storage/new-storage {}))
+      => (throws ExceptionInfo "Failed connecting to DB"))
+
   (fact "it connects to DB whose name is given as config argument"
     (let [db-config {:config {:db-name "test-db"}}
           storage (component/start (storage/new-storage db-config))]
