@@ -11,7 +11,8 @@
 (defn ^:private db-name
   [config]
   (if (:db-name config)
-    (:db-name config)))
+    (:db-name config)
+    (throw (ex-info "Failed connecting to DB" {:cause ":db-name not given"}))))
 
 (defn ^:private setup-db-conn
   [this]
