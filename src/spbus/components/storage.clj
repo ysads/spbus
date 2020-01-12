@@ -9,6 +9,9 @@
   (:gen-class))
 
 (defn ^:private db-name
+  "The proper database name to which we will attach to. Note that component
+  assumes a config map is available with the key :db-name holding this data.
+  No fallback is assumed, thus in case this info is not available, process fails."
   [config]
   (if (:db-name config)
     (:db-name config)
@@ -42,35 +45,35 @@
         (assoc :updated-at now)
         (assoc :_id (ObjectId.)))))
 
-(defn ^:private find-one!
+(defn ^:private find-one
   [db entity id]
   (let [oid (object-id id)]
     (monger-data/find-map-by-id db entity oid)))
 
-(defn ^:private insert-data!
+(defn ^:private insert-one
   [db entity data]
   (monger-data/insert-and-return db entity (insertion-prepared-data data)))
 
-(defn ^:private find-collection!
+(defn ^:private find-many
   [db entity conditions]
   (monger-data/find-maps db entity conditions))
 
-(defn ^:private update-data!
+(defn ^:private update-many
   [db entity id data]
   (let [updated-data (assoc data :updated-at (str (time/local-date-time)))]
     (monger-data/find-and-modify db
-                                entity
-                                {:_id id}
-                                {:$set updated-data}
-                                {:return-new true})))
+                                 entity
+                                 {:_id id}
+                                 {:$set updated-data}
+                                 {:return-new true})))
 
-(defn ^:private delete-collection!
+(defn ^:private delete-many
   [db entity conditions]
   (if (empty? conditions)
     (fail/fail "Can not delete without conditions")
     (monger-data/remove db entity conditions)))
 
-(defrecord MongoStorage [conn db]
+(defrecord MongoStorage [config conn db]
   component/Lifecycle
   (start [this]
     (setup-db-conn this))
@@ -79,16 +82,15 @@
 
   storage-client/StorageClient
   (find-by-id [_this entity id]
-    (find-one! db entity id))
+    (find-one db entity id))
   (find [_this entity conditions]
-    (find-collection! db entity conditions))
-  (put! [_this entity data]
-    (insert-data! db entity data))
-  (update! [_this entity id updated-data]
-    (update-data! db entity id updated-data))
-  (delete! [_this entity conditions]
-    (delete-collection! db entity conditions)))
+    (find-many db entity conditions))
+  (insert [_this entity data]
+    (insert-one db entity data))
+  (update [_this entity id updated-data]
+    (update-many db entity id updated-data))
+  (delete [_this entity conditions]
+    (delete-many db entity conditions)))
 
-(defn new-storage
-  [system]
-  (map->MongoStorage system))
+(defn new-storage []
+  (map->MongoStorage {}))
