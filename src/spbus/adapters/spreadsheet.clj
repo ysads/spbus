@@ -14,16 +14,18 @@
 
 (defn rows
   "Returns a seq to allow iteration over sheet data"
-  [sheet]
-  (sheet/row-seq sheet))
+  [sheet & {:keys [header-size]}]
+  (let [lines-to-drop (or header-size 0)]
+    (->> (sheet/row-seq sheet)
+         (drop lines-to-drop))))
 
 (defn nth-row
+  "Returns the nth row of a sheet. It accepts an optional header-size param
+  which states how many rows should not be taken into account when finding
+  the nth row"
   [sheet row-number & {:keys [header-size]}]
-  (let [sheet-rows (rows sheet)]
-    (if header-size
-      (-> (drop header-size sheet-rows)
-          (nth row-number))
-      (nth sheet-rows row-number))))
+  (-> (rows sheet :header-size header-size)
+      (nth row-number)))
 
 (defn cell-value
   "Returns the cell value in its proper type"
