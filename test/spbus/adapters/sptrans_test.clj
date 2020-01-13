@@ -2,8 +2,12 @@
   (:require [clojure.spec.alpha :as spec]
             [java-time :as time]
             [midje.sweet :refer :all]
+            [spbus.adapters.spreadsheet :as spreadsheet]
             [spbus.adapters.sptrans :as sptrans]
-            [spbus.support.test-tools :as tools]))
+            [spbus.adapters.sptrans.parser-a :as parser-a]
+            [spbus.adapters.sptrans.parser-b :as parser-b]
+            [spbus.support.test-tools :as tools])
+  (:import clojure.lang.ExceptionInfo))
 
 (fact "sptrans/statistics-url is the correct URL"
   sptrans/statistics-url => "https://www.prefeitura.sp.gov.br/cidade/secretarias/transportes/institucional/sptrans/acesso_a_informacao/agenda/index.php?p=269652")
@@ -73,6 +77,23 @@
   (fact "link is a map representing the given date, if the date is found"
     (:date (sptrans/link-of-date "2019-03-30")) => (time/local-date date-format "2019-03-30")
     (:date (sptrans/link-of-date "2019-06-12")) => (time/local-date date-format "2019-06-12"))
+
   (fact "link is nil when requested date can't be found"
     (:date (sptrans/link-of-date "2019-10-25")) => nil
     (:date (sptrans/link-of-date "2019-12-10")) => nil))
+
+(def mock-link {:url "foo.com"})
+(def mock-sheet (spreadsheet/load-sheet "./test/fixtures/sptrans/type_a.xls"))
+(def mock-row (seq (spreadsheet/nth-row mock-sheet 0 :header-size 3)))
+
+(facts "about sptrans/link->statistics"
+  (fact "raises error if it does not find a suitable parser to a given row"
+    (sptrans/link->statistics mock-link) => (throws ExceptionInfo "No suitable parser")
+    (provided (spreadsheet/load-sheet (:url mock-link)) => mock-sheet
+              (parser-a/parseable? mock-row) => false
+              (parser-b/parseable? mock-row) => false))
+
+  (against-background [(spreadsheet/load-sheet (:url mock-link)) => mock-sheet]
+    (fact "parses all rows using proper parser"
+      (let [statistics (sptrans/link->statistics mock-link)]
+        (every? #(contains? % :route) statistics) => true))))

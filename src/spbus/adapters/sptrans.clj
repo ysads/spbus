@@ -8,9 +8,6 @@
             [spbus.adapters.spreadsheet :as spreadsheet])
   (:gen-class))
 
-;;;;;;;;;;;;;;;;;;;;
-;; Crawling related stuff
-;;
 (def statistics-url "https://www.prefeitura.sp.gov.br/cidade/secretarias/transportes/institucional/sptrans/acesso_a_informacao/agenda/index.php?p=269652")
 
 (def months-mapping {"Janeiro" "01"
@@ -100,29 +97,22 @@
        (filter #(= (:date %) (time/local-date date)))
        (first)))
 
-;;;;;;;;;;;;;;;;;;
-;; Parsing related stuff
-;;
-
-(defn ^:private all-statistics
-  "Drops the worksheet header leaving just the raw data."
-  [worksheet]
-  (->> (spreadsheet/rows worksheet)
-       (drop 3)
-       (seq)))
-
-(defn ^:private row->line-statistics
+(defn ^:private row->route-statistics
   [raw-row]
   (let [row (seq raw-row)]
     (cond
       (parser-a/parseable? row) (parser-a/parse row)
       (parser-b/parseable? row) (parser-b/parse row)
-      :else nil)))
+      :else (throw (ex-info "No suitable parser" {:row row})))))
 
-(defn statistics-from-link
+(defn ^:private all-statistics
+  [rows]
+  (map row->route-statistics rows))
+
+(defn link->statistics
   "Parses all available statistics based on a given link. These statistics
   are parsed according to their proper parsers."
   [link]
-  (let [worksheet (spreadsheet/load-sheet (:url link))
-        data (all-statistics worksheet)]
-    (map row->line-statistics data)))
+  (-> (spreadsheet/load-sheet (:url link))
+      (spreadsheet/rows :header-size 3)
+      (all-statistics)))
