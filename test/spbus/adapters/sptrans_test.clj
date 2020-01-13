@@ -67,20 +67,21 @@
 (def mock-page (tools/mock-from-fixture "sptrans/statistics_page.html"))
 
 (fact "sptrans/year-links parses all links for a given year sorted by date"
-  (against-background [(slurp ..url..) => mock-page])
   (let [stats-links (sptrans/year-links ..url..)]
     (count stats-links) => 273
-    (apply <= (map day-of-year stats-links)) => true))
+    (apply <= (map day-of-year stats-links)) => true)
+  (against-background (slurp ..url..) => mock-page))
 
 (facts "about sptrans/link-of-date"
-  (against-background [(slurp sptrans/statistics-url) => mock-page])
   (fact "link is a map representing the given date, if the date is found"
     (:date (sptrans/link-of-date "2019-03-30")) => (time/local-date date-format "2019-03-30")
     (:date (sptrans/link-of-date "2019-06-12")) => (time/local-date date-format "2019-06-12"))
 
   (fact "link is nil when requested date can't be found"
     (:date (sptrans/link-of-date "2019-10-25")) => nil
-    (:date (sptrans/link-of-date "2019-12-10")) => nil))
+    (:date (sptrans/link-of-date "2019-12-10")) => nil)
+
+  (against-background (slurp sptrans/statistics-url) => mock-page))
 
 (def mock-link {:url "foo.com"})
 (def mock-sheet (spreadsheet/load-sheet "./test/fixtures/sptrans/type_a.xls"))
@@ -89,11 +90,12 @@
 (facts "about sptrans/link->statistics"
   (fact "raises error if it does not find a suitable parser to a given row"
     (sptrans/link->statistics mock-link) => (throws ExceptionInfo "No suitable parser")
-    (provided (spreadsheet/load-sheet (:url mock-link)) => mock-sheet
-              (parser-a/parseable? mock-row) => false
-              (parser-b/parseable? mock-row) => false))
+    (against-background (spreadsheet/load-sheet (:url mock-link)) => mock-sheet
+                        (parser-a/parseable? mock-row) => false
+                        (parser-b/parseable? mock-row) => false))
 
-  (against-background [(spreadsheet/load-sheet (:url mock-link)) => mock-sheet]
     (fact "parses all rows using proper parser"
       (let [statistics (sptrans/link->statistics mock-link)]
-        (every? #(contains? % :route) statistics) => true))))
+        (every? #(contains? % :route) statistics) => true)
+      (against-background
+       (spreadsheet/load-sheet (:url mock-link)) => mock-sheet)))
