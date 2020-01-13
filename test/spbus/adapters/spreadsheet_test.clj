@@ -15,6 +15,12 @@
   (seq? (spreadsheet/rows sheet-1)) => true
   (seq? (spreadsheet/rows sheet-2)) => true)
 
+(fact "spreadsheet/rows accepts a header-size key which discards the n first lines"
+  (let [sheet-1-rows (spreadsheet/rows sheet-1)
+        sheet-1-rows-with-header (spreadsheet/rows sheet-1 :header-size 3)]
+    (count sheet-1-rows-with-header) => (- (count sheet-1-rows) 3)
+    (seq? sheet-1-rows-with-header) => true))
+
 (def rows-sheet-1 (spreadsheet/rows sheet-1))
 
 (fact "spreadsheet/nth-row gets the proper row from the sheet"
