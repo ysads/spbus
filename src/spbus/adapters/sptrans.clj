@@ -81,8 +81,8 @@
          (remove nil?))))
 
 (defn year-links
-  [url]
   "All available links for statistics of a year."
+  [url]
   (let [page (slurp url)]
     (->> (into (stats-on-container page ".calend_dir")
                (stats-on-container page ".calend_esq"))
