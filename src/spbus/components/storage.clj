@@ -71,7 +71,8 @@
   [db entity conditions]
   (if (empty? conditions)
     (fail/fail "Can not delete without conditions")
-    (monger-data/remove db entity conditions)))
+    (let [result (monger-data/remove db entity conditions)]
+      (.getN result))))
 
 (defrecord MongoStorage [config conn db]
   component/Lifecycle

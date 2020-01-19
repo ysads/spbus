@@ -9,8 +9,8 @@
             [spbus.protocols.storage-client :as client])
   (:import clojure.lang.ExceptionInfo))
 
-(def *storage* nil)
-(def *db* nil)
+(def ^:dynamic *storage* nil)
+(def ^:dynamic *db* nil)
 (def test-entity "test")
 (def test-config {:db-name "test"})
 
@@ -36,7 +36,7 @@
   (monger-document/remove *db* test-entity))
 
 (facts "about db connection"
-  (fact "it fails if  no DB name is given at config"
+  (fact "it fails if no DB name is given at config"
     (component/start (storage-with-config {}))
       => (throws ExceptionInfo "Failed connecting to DB"))
 
@@ -48,7 +48,7 @@
 (with-state-changes [(before :contents (setup-db))
                      (before :facts (clean-db))
                      (after :contents (close-db))]
-  (facts "about put"
+  (facts "about insert"
     (fact "it persists document to mongoDB"
       (client/insert *storage* test-entity {:foo "bar"})
       (monger-document/count *db* test-entity {:foo "bar"}) => 1)
@@ -120,4 +120,9 @@
       (client/delete *storage* test-entity {$or [{:foo 1} {:bar 2}]})
       (monger-document/count *db* test-entity {:foo 1}) => 0
       (monger-document/count *db* test-entity {:bar 2}) => 0
-      (monger-document/count *db* test-entity {:baz 3}) => 1)))
+      (monger-document/count *db* test-entity {:baz 3}) => 1))
+
+  (fact "returns the number of records deleted"
+    (client/insert *storage* test-entity {:foo 1})
+    (client/delete *storage* test-entity {:bar 2}) => 0
+    (client/delete *storage* test-entity {:foo 1}) => 1))
