@@ -4,17 +4,16 @@
             [spbus.components.storage :as storage])
   (:gen-class))
 
-(def test-system
-  (component/system-map
-   :config (config/new-config {:db-name "spbus-test"})
-   :storage (component/using (storage/new-storage) [:config])))
-
-(def dev-system
+(def base-system
   (component/system-map
    :config (config/new-config {:db-name "spbus-dev"})
    :storage (component/using (storage/new-storage) [:config])))
 
-(def all-systems {:dev dev-system
+(def test-system
+  (merge base-system
+         {:config (config/new-config {:db-name "spbus-test"})}))
+
+(def all-systems {:dev base-system
                   :test test-system})
 
 (defn system-for-env
