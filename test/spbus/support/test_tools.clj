@@ -2,7 +2,7 @@
   (:require [clojure.edn :as edn]
             [monger.collection :as monger-document]
             [monger.db :as monger-db]
-            [spbus.system-utils :as system]))
+            [spbus.system-utils :as system-utils]))
 
 (def factories-path "./test/factories")
 (def fixtures-path "./test/fixtures")
@@ -24,7 +24,7 @@
     (slurp filename)))
 
 (defn init-system! []
-  (let [system (running-system-for-env :test)
+  (let [system (system-utils/running-system-for-env :test)
         db (:db (:storage system))]
     (map #(monger-document/remove db %)
          (monger-db/get-collection-names db))))
