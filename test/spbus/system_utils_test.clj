@@ -14,8 +14,8 @@
                                              :storage anything})))
 
   (fact "system-utils/stop-system stops the current active system"
-        @system-utils/current-system => nil
-        (system-utils/running-system-for-env :test)
-        (keys (:storage @system-utils/current-system)) => (just #{:config :conn :db}) 
-        (system-utils/stop-system)
-        (keys (:storage @system-utils/current-system)) => (just #{:config})))
+    @system-utils/current-system => nil
+    (system-utils/running-system-for-env :test)
+    (keys (:storage @system-utils/current-system)) => (just #{:config :conn :db})
+    (system-utils/stop-system)
+    @system-utils/current-system => nil))

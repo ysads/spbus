@@ -6,7 +6,8 @@
 (def current-system (atom nil))
 
 (defn stop-system []
-  (swap! current-system #(component/stop %)))
+  (component/stop current-system)
+  (reset! current-system nil))
 
 (defn create-and-start-system
   [env]
