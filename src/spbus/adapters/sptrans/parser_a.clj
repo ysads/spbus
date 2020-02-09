@@ -134,26 +134,32 @@
 
 (defn basic-info
   [row]
-  (let [id (line-id row)]
-    {:company (company row)
-     :area (area row)
-     :line-id id
-     :line-code (line-code id)
-     :branch-code (branch-code id)
-     :transport-mode "bus"}))
+  {:company (company row)
+    :area (area row)
+    :transport-mode "bus"})
 
 (defn with-pre-boarding
   [data row]
   (merge data {:pre-boarding (pre-boarding? row)}))
 
+(defn with-stop-details
+  [data row]
+  (if (pre-boarding? row)
+    (merge data {:stop-name (route row)
+                 :stop-id (line-id row)})
+    data))
+
 (defn with-route-details
   [data row]
-  (merge data (if (pre-boarding? row)
-                  {:route (route row)
-                   :terminus (main-terminus row)}
-                  {:route (route row)
+  (let [id (line-id row)]
+    (if (pre-boarding? row)
+      data
+      (merge data {:route (route row)
                    :main-terminus (main-terminus row)
-                   :auxiliar-terminus (auxiliar-terminus row)})))
+                   :auxiliar-terminus (auxiliar-terminus row)
+                   :line-id id
+                   :line-code (line-code id)
+                   :branch-code (branch-code id)}))))
 
 (defn with-pax-totals
   [data row]
@@ -175,5 +181,6 @@
   [row]
   (-> (basic-info row)
       (with-pre-boarding row)
+      (with-stop-details row)
       (with-route-details row)
       (with-pax-totals row)))

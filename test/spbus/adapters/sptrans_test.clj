@@ -83,7 +83,7 @@
 
   (against-background (slurp sptrans/statistics-url) => mock-page))
 
-(def mock-link {:url "foo.com"})
+(def mock-link {:url "foo.com" :date "2019-01-20"})
 (def mock-sheet (spreadsheet/load-sheet "./test/fixtures/sptrans/type_a.xls"))
 (def mock-row (seq (spreadsheet/nth-row mock-sheet 0 :header-size 3)))
 
@@ -96,6 +96,6 @@
 
     (fact "parses all rows using proper parser"
       (let [statistics (sptrans/link->statistics mock-link)]
-        (every? #(contains? % :route) statistics) => true)
+        (every? #(contains? % :date) statistics) => true)
       (against-background
        (spreadsheet/load-sheet (:url mock-link)) => mock-sheet)))

@@ -73,10 +73,12 @@
 
 (fact "parser-a/parse returns a map with all information"
   (parser-a/parse row-pre-boarding) => (contains {:pre-boarding true
-                                                  :route "TERM VARGINHA/COOPERPAM"
+                                                  :stop-name "TERM VARGINHA/COOPERPAM"
+                                                  :stop-id "9924PR"
                                                   :transport-mode "bus"})
   (parser-a/parse row-exp-tiradentes) => (contains {:pre-boarding true
-                                                    :terminus "EXP TIRADENTES"
+                                                    :stop-name "EXP TIRADENTES - RUA DO GRITO"
+                                                    :stop-id "510511"
                                                     :transport-mode "bus"})
   (parser-a/parse row-single-terminus) => (contains {:pre-boarding false
                                                      :main-terminus "DETRAN"
