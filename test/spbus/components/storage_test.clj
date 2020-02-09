@@ -49,7 +49,7 @@
                      (before :facts (clean-db))
                      (after :contents (close-db))]
   (facts "about insert"
-    (fact "it persists document to mongoDB"
+    (fact "it persists document to database"
       (client/insert *storage* test-entity {:foo "bar"})
       (monger-document/count *db* test-entity {:foo "bar"}) => 1)
 
@@ -62,6 +62,20 @@
       (let [now (time/local-date-time)]
         (client/insert *storage* test-entity {:foo "bar"}) => (contains {:updated-at (str now)})
         (provided (time/local-date-time) => now))))
+
+  (facts "about insert-batch"
+    (fact "it persists several documents at once"
+      (client/insert-batch *storage* test-entity '({:test true}
+                                                   {:test true}
+                                                   {:test true}))
+      (monger-document/count *db* test-entity {:test true}) => 3)
+
+    (fact "it assocs :created-at to every document persisted"
+      (client/insert-batch *storage* test-entity '({:test true}
+                                                   {:test true}
+                                                   {:test true}))
+      (let [docs (monger-document/find-maps *db* test-entity {:test true})]
+        (every? #(contains? % :created-at) docs) => true)))
 
   (facts "about update-by-id"
     (fact "it merges update document into persisted document"

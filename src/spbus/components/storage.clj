@@ -4,6 +4,7 @@
             [java-time :as time]
             [monger.core :as monger]
             [monger.collection :as monger-data]
+            [monger.result :as monger-result]
             [spbus.protocols.storage-client :as storage-client])
   (:import org.bson.types.ObjectId java.lang.IllegalArgumentException)
   (:gen-class))
@@ -61,6 +62,13 @@
   [db entity data]
   (monger-data/insert-and-return db entity (insertion-ready-data data)))
 
+(defn ^:private insert-many
+  [db entity coll]
+  (->> coll
+       (map insertion-ready-data)
+       (monger-data/insert-batch db entity)
+       (monger-result/acknowledged?)))
+
 (defn ^:private find-many
   [db entity conditions]
   (monger-data/find-maps db entity conditions))
@@ -99,6 +107,8 @@
     (find-many db entity conditions))
   (insert [_this entity data]
     (insert-one db entity data))
+  (insert-batch [_this entity coll]
+    (insert-many db entity coll))
   (update-by-id [_this entity id updated-data]
     (update-one db entity id updated-data))
   (delete-by-id [_this entity id]
