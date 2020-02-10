@@ -1,6 +1,6 @@
 (ns spbus.support.test-tools
   (:require [clojure.edn :as edn]
-            [monger.collection :as monger-document]
+            [monger.collection :as monger-data]
             [monger.db :as monger-db]
             [spbus.system-utils :as system-utils]))
 
@@ -24,7 +24,4 @@
     (slurp filename)))
 
 (defn init-system! []
-  (let [system (system-utils/running-system-for-env :test)
-        db (:db (:storage system))]
-    (map #(monger-document/remove db %)
-         (monger-db/get-collection-names db))))
+  (system-utils/running-system-for-env :test))

@@ -1,0 +1,22 @@
+{:pre-boarding false
+ :line-id "N14311"
+ :line-code "N143"
+ :branch-code "11"
+ :main-terminus "METRO BARRA FUNDA"
+ :auxiliar-terminus "MORRO GRANDE"
+ :route "METRO BARRA FUNDA/MORRO GRANDE"
+ :company "202"
+ :area "1"
+ :paying-pax {:cash 3
+              :normal-and-work-card 35
+              :student 1
+              :month-pass-normal 4
+              :month-pass-work 0
+              :month-pass-student 0
+              :total 43}
+ :free-pax {:bus-bus-connections 18
+            :normal 7
+            :student 1
+            :total 26}
+ :total-pax 69
+ :transport-mode "bus"}
