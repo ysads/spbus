@@ -10,7 +10,11 @@
     "Returns a collection of objects based on given conditions.")
   (insert [storage entity data]
     "Insert a new object to database under given entity.")
-  (update [storage entity id updated-data]
-    "Merges updated-data into the data already persisted to database at given ID.")
+  (insert-batch [storage entity coll]
+    "Insert a batch of objects into entity at the same time.")
+  (update-by-id [storage entity id updated-data]
+    "Merges updated-data into the data already persisted to database given an identifier.")
+  (delete-by-id [storage entity id]
+    "Removes a single record from database given an identifier.")
   (delete [storage entity conditions]
-    "Removes a record from database."))
+    "Removes a batch of records from database."))

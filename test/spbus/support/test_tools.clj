@@ -1,5 +1,8 @@
 (ns spbus.support.test-tools
-  (:require [clojure.edn :as edn]))
+  (:require [clojure.edn :as edn]
+            [monger.collection :as monger-data]
+            [monger.db :as monger-db]
+            [spbus.system-utils :as system-utils]))
 
 (def factories-path "./test/factories")
 (def fixtures-path "./test/fixtures")
@@ -19,3 +22,6 @@
   [fixture]
   (let [filename (fullpath fixtures-path fixture)]
     (slurp filename)))
+
+(defn init-system! []
+  (system-utils/running-system-for-env :test))

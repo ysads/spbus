@@ -4,6 +4,7 @@
             [java-time :as time]
             [monger.core :as monger]
             [monger.collection :as monger-data]
+            [monger.result :as monger-result]
             [spbus.protocols.storage-client :as storage-client])
   (:import org.bson.types.ObjectId java.lang.IllegalArgumentException)
   (:gen-class))
@@ -36,7 +37,7 @@
     id
     (ObjectId. id)))
 
-(defn ^:private insertion-prepared-data
+(defn ^:private insertion-ready-data
   "Prepares data to be inserted for the first time on DB."
   [data]
   (let [now (str (time/local-date-time))]
@@ -45,6 +46,13 @@
         (assoc :updated-at now)
         (assoc :_id (ObjectId.)))))
 
+(defn ^:private update-ready-data
+  "Prepares data to be updated on DB, which means touching the :update-at
+  attribute to reflect the last time record was modified."
+  [data]
+  (let [now (str (time/local-date-time))]
+    (assoc data :updated-at now)))
+
 (defn ^:private find-one
   [db entity id]
   (let [oid (object-id id)]
@@ -52,26 +60,38 @@
 
 (defn ^:private insert-one
   [db entity data]
-  (monger-data/insert-and-return db entity (insertion-prepared-data data)))
+  (monger-data/insert-and-return db entity (insertion-ready-data data)))
+
+(defn ^:private insert-many
+  [db entity coll]
+  (->> coll
+       (map insertion-ready-data)
+       (monger-data/insert-batch db entity)
+       (monger-result/acknowledged?)))
 
 (defn ^:private find-many
   [db entity conditions]
   (monger-data/find-maps db entity conditions))
 
-(defn ^:private update-many
+(defn ^:private update-one
   [db entity id data]
-  (let [updated-data (assoc data :updated-at (str (time/local-date-time)))]
-    (monger-data/find-and-modify db
-                                 entity
-                                 {:_id id}
-                                 {:$set updated-data}
-                                 {:return-new true})))
+  (monger-data/find-and-modify db
+                               entity
+                               {:_id (object-id id)}
+                               {:$set (update-ready-data data)}
+                               {:return-new true}))
 
 (defn ^:private delete-many
   [db entity conditions]
   (if (empty? conditions)
     (fail/fail "Can not delete without conditions")
-    (monger-data/remove db entity conditions)))
+    (-> (monger-data/remove db entity conditions)
+        (.getN)
+        (> 0))))
+
+(defn ^:private delete-one
+  [db entity id]
+  (delete-many db entity {:_id (object-id id)}))
 
 (defrecord MongoStorage [config conn db]
   component/Lifecycle
@@ -87,8 +107,12 @@
     (find-many db entity conditions))
   (insert [_this entity data]
     (insert-one db entity data))
-  (update [_this entity id updated-data]
-    (update-many db entity id updated-data))
+  (insert-batch [_this entity coll]
+    (insert-many db entity coll))
+  (update-by-id [_this entity id updated-data]
+    (update-one db entity id updated-data))
+  (delete-by-id [_this entity id]
+    (delete-one db entity id))
   (delete [_this entity conditions]
     (delete-many db entity conditions)))
 

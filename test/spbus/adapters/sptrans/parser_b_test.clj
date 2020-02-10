@@ -77,10 +77,12 @@
 
 (fact "parser-b/parse returns a map with all information"
   (parser-b/parse row-pre-boarding) => (contains {:pre-boarding true
-                                                  :route "TERM CIDADE TIRADENTES/VIP"
+                                                  :stop-name "TERM CIDADE TIRADENTES/VIP"
+                                                    :stop-id "9932PR"
                                                   :transport-mode "bus"})
   (parser-b/parse row-exp-tiradentes) => (contains {:pre-boarding true
-                                                    :route "EXP TIRADENTES - ANA NERI"
+                                                    :stop-name "EXP TIRADENTES - ANA NERI"
+                                                    :stop-id "510513"
                                                     :transport-mode "bus"})
   (parser-b/parse row-bad-format) => (contains {:pre-boarding false
                                                 :main-terminus "PQ RES COCAIA"

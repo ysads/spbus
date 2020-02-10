@@ -97,7 +97,7 @@
        (filter #(= (:date %) (time/local-date date)))
        (first)))
 
-(defn ^:private row->route-statistics
+(defn ^:private parse-row-statistics
   [raw-row]
   (let [row (seq raw-row)]
     (cond
@@ -105,9 +105,14 @@
       (parser-b/parseable? row) (parser-b/parse row)
       :else (throw (ex-info "No suitable parser" {:row row})))))
 
+(defn ^:private row->route-statistics
+  [raw-row date]
+  (-> (parse-row-statistics raw-row)
+      (assoc :date (str date))))
+
 (defn ^:private all-statistics
-  [rows]
-  (map row->route-statistics rows))
+  [rows date]
+  (map #(row->route-statistics % date) rows))
 
 (defn link->statistics
   "Parses all available statistics based on a given link. These statistics
@@ -115,4 +120,4 @@
   [link]
   (-> (spreadsheet/load-sheet (:url link))
       (spreadsheet/rows :header-size 3)
-      (all-statistics)))
+      (all-statistics (:date link))))
